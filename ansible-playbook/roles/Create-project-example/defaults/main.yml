@@ -1,0 +1,107 @@
+---
+
+# Dit moet ook naar de backup gaan
+new_namespace: ansible-test-project
+# new_namespace: wael-nginx
+
+database_active: true
+database_persistent_volume_name: "{{ new_namespace }}-db-pv"
+database_persistent_volume_claim_name: "{{ new_namespace }}-db-pvc"
+database_deployment_name: mysql-deployment
+database_replicas: 1
+database_image: mysql:latest
+
+database_secret_name: password-secrets
+
+# Denk eens goed na hoe je die environment variabelen gaat doen in de "db-deployment.yaml.j2"!!!!!
+database_env_root_password_name: MYSQL_ROOT_PASSWORD
+database_root_password: root
+# en ook de deze want het hangt af van welke database ze gebruiken!!
+database_volumemounts_mountpath: /var/lib/mysql
+
+database_service_name: mysql-service
+
+
+# Deze word gebruikt in de hosts file
+# phpmyadmin_secret_name: tls-secret-phpmyadmin
+
+phpmyadmin_deployment_name: phpmyadmin-deployment
+phpmyadmin_replicas: 1
+phpmyadmin_image: phpmyadmin/phpmyadmin
+
+phpmyadmin_service_name: phpmyadmin-service
+phpmyadmin_outside_port: 8081
+
+phpmyadmin_ingress_name: phpmyadmin-http-ingress
+
+# Deze word gebruikt in de hosts file
+phpmyadmin_ingress_url: "{{ phpmyadmin_ingress_url_hosts }}"
+
+
+# Dit moet ook naar de backup gaan
+phpmyadmin_certificate_name: tls_phpmyadmin 
+
+
+
+website_active: true
+website_persistent_volume_name: "{{ new_namespace }}-website-pv"
+website_persistent_volume_claim_name: "{{ new_namespace }}-website-pvc"
+website_pod_name: apache-deployment
+website_replicas: 1
+website_image: php:8.1-apache
+
+# Denk eens goed na hoe je die PATH gaat doen in de "website-deployment.yaml.j2"!!!!!
+# Want het hangt af van welke website ze gebruiken!!
+website_volumemounts_mountpath: /var/www/html
+
+website_service_name: apache-service
+website_outside_port: 80
+website_ingress_name: apache-ingress
+
+# Deze word gebruikt in de hosts file
+website_ingress_url: "{{ website_ingress_url_hosts }}"
+
+website_secret_name: tls-secret-website
+# Dit moet ook naar de backup gaan
+website_certificate_name: tls_website 
+
+
+database_k8s_files:
+  - src: db-secret.yaml.j2
+    dest: 1db-secret.yaml
+  - src: db-persistent-volume.yaml.j2
+    dest: 2db-persistent-volume.yaml
+  - src: db-persistent-volume-claim.yaml.j2
+    dest: 3db-persistent-volume-claim.yaml
+  - src: db-deployment.yaml.j2
+    dest: 4db-deployment.yaml
+  - src: db-service.yaml.j2
+    dest: 5db-service.yaml
+
+
+phpmyadmin_k8s_files:
+  - src: "pma-secret.yaml.j2"
+    dest: "6pma-secret.yaml"
+  - src: "pma-deployment.yaml.j2"
+    dest: "7pma-deployment.yaml"
+  - src: "pma-service.yaml.j2"
+    dest: "8pma-service.yaml"
+  - src: "pma-ingress.yaml.j2"
+    dest: "9pma-ingress.yaml"
+
+website_k8s_files:
+  - src: "website-secret.yaml.j2"
+    dest: "10website-secret.yaml"
+  - src: "website-persistent-volume.yaml.j2"
+    dest: "11website-persistent-volume.yaml"
+  - src: "website-persistent-volume-claim.yaml.j2"
+    dest: "12website-persistent-volume-claim.yaml"
+  - src: "website-deployment.yaml.j2"
+    dest: "13website-deployment.yaml"
+  - src: "website-service.yaml.j2"
+    dest: "14website-service.yaml"
+  - src: "website-ingress.yaml.j2"
+    dest: "15website-ingress.yaml"
+
+
+...

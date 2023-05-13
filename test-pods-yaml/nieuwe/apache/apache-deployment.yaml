@@ -1,0 +1,29 @@
+# Activate 3
+
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: apache-deployment
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: apache
+  template:
+    metadata:
+      labels:
+        app: apache
+    spec:
+      containers:
+      - name: apache
+        image: php:8.1-apache
+        command: ["/bin/bash", "-c", "apt-get clean && apt-get update && docker-php-ext-install mysqli && apache2ctl -DFOREGROUND"]
+        ports:
+        - containerPort: 80
+        volumeMounts:
+        - name: apache-volume
+          mountPath: /var/www/html
+      volumes:
+      - name: apache-volume
+        persistentVolumeClaim:
+          claimName: apache-pvc

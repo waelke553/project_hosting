@@ -1,0 +1,13 @@
+---
+
+# Deze word gebruikt in de hosts file
+phpmyadmin_ingress_url: "{{ phpmyadmin_ingress_url_hosts }}"
+
+# Deze word gebruikt in de hosts file
+website_ingress_url: "{{ website_ingress_url_hosts }}"
+
+url_list:
+  - "{{ phpmyadmin_ingress_url }}"
+  - "{{ website_ingress_url }}"
+
+...

@@ -1,0 +1,31 @@
+[localhost]
+127.0.0.1 ansible_user=wael
+
+[localhost:vars]
+path_to_rancher_file=/home/wael/rancher-v2.7.0/
+nfs_ip_address=172.26.192.80
+nfs_file_path=/nfs/shareddir/
+current_playbook=/home/wael/ansible-playbook/roles/Create-project-example
+backup_yaml=/home/wael/ansible-playbook/roles/Create-project-example/files
+backup_ansible_playbook=/home/wael/ansible-playbook-backup
+bearer_token=token-7txdl:v9s89hg8qdzls7smrdtprt7f28gb2728dpxq465pz9dtt9m779dv9w
+root_certificate_directory=/home/wael/openssl
+
+
+
+[dns_server]
+172.26.103.2 ansible_user=wael
+
+[dns_server:vars]
+worker_node_1=172.26.192.145
+worker_node_2=172.26.192.240
+     
+
+
+[all_servers:children]
+localhost
+dns_server
+
+[all_servers:vars]
+phpmyadmin_ingress_url_hosts=mijnphpmyadmin2.com
+website_ingress_url_hosts=mijnapachetest2.com

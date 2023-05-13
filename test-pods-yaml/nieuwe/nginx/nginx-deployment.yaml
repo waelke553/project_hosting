@@ -1,0 +1,28 @@
+# Activate 3
+
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: nginx-deployment
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: nginx
+  template:
+    metadata:
+      labels:
+        app: nginx
+    spec:
+      containers:
+      - name: nginx
+        image: nginx:latest
+        volumeMounts:
+        - name: nfs-volume
+          mountPath: /usr/share/nginx/html
+          # subPath: portfolio
+          # Dit wilt zeggen dat hij onder de folder "/usr/share/nginx/html" nog naar portfolio gaat zoeken. En dan steekt hij de index daarin.
+      volumes:
+      - name: nfs-volume
+        persistentVolumeClaim:
+          claimName: nfs-pvc

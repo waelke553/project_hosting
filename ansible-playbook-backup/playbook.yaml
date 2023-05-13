@@ -1,0 +1,21 @@
+---
+
+- hosts: localhost
+  gather_facts: no
+  connection: local
+  become: true
+  tasks:
+    - name: Get list of role directories
+      find:
+        paths: roles
+        file_type: directory
+      register: role_dirs
+
+    - name: Execute all roles in roles directory
+      include_role:
+        name: "{{ role_dir.path | basename }}"
+      loop: "{{ role_dirs.files }}"
+      loop_control:
+        loop_var: role_dir
+
+...

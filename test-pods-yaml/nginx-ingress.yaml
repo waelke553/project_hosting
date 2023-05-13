@@ -1,0 +1,103 @@
+# nginx-ingress.yaml
+
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: nginx-ingress
+  annotations:
+    kubernetes.io/ingress.class: nginx    # Replace with the ingress class of your nginx ingress controller
+spec:
+  rules:
+  - host: my-nginx.example.com   # Replace with your desired host
+    http:
+      paths:
+      - path: /
+        pathType: Prefix
+        backend:
+          service:
+            name: nginx-pod
+            port:
+              number: 80
+
+# deze staat al op rancher zelf.
+# apiVersion: networking.k8s.io/v1
+# kind: Ingress
+# metadata:
+#   name: nginx-ingress
+# spec:
+#   ingressClassName: nginx
+#   rules:
+#     - host: nginx.net
+#       http:
+#         paths:
+#           - backend:
+#               service:
+#                 name: nginx-pod
+#                 port:
+#                   number: 8080
+#             path: /
+#             pathType: Prefix
+
+
+# Ingress van UI
+# apiVersion: networking.k8s.io/v1
+# kind: Ingress
+# metadata:
+#   name: nginx-ingress
+#   annotations:
+#     {}
+# #    key: string
+#   labels:
+#     {}
+# #    key: string
+#   namespace: wael-nginx
+# spec:
+#   ingressClassName: nginx
+#   rules:
+#     - vKey: 357411933
+#       host: my-nginx.example.com
+#       http:
+#         paths:
+#           - id: 4034181618
+#             backend:
+#               service:
+#                 port:
+#                   number: 80
+#                 name: nginx-svc
+#             path: /
+#             pathType: Prefix
+# #    - host: string
+# #      http:
+# #        paths:
+# #          - backend:
+# #              resource:
+# #                apiGroup: string
+# #                kind: string
+# #                name: string
+# #              service:
+# #                name: string
+# #                port:
+# #                  name: string
+# #                  number: int
+# #            path: string
+# #            pathType: string
+#   tls:
+# #    - hosts:
+# #        - string
+# #      secretName: string
+#   backend:
+#     {}
+# #  defaultBackend:
+# #    resource:
+# #      apiGroup: string
+# #      kind: string
+# #      name: string
+# #    service:
+# #      name: string
+# #      port:
+# #        name: string
+# #        number: int
+# __clone: true
+# cacheObject:
+#   useNestedBackendField: true
+#   showPathType: true

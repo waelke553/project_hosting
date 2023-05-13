@@ -1,0 +1,13 @@
+apiVersion: v1
+kind: PersistentVolume
+metadata:
+  name: {{ website_persistent_volume_name }}
+spec:
+  capacity:
+    storage: 1Gi
+  accessModes:
+    - ReadWriteMany
+  nfs:
+    server: {{ nfs_ip_address }}
+    path: {{ nfs_file_path ~ new_namespace }}/website
+    

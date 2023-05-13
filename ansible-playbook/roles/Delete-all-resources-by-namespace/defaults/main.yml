@@ -1,0 +1,10 @@
+---
+
+new_namespace: ansible-test-project
+# new_namespace: wael-nginx
+
+
+# Ik moet hier ook de DNS namen toevoegen om ze te verwijderen!!
+# Maar is er een manier om deze op te zoeken:
+# kubectl get ingress ????
+...

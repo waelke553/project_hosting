@@ -1,0 +1,23 @@
+---
+  # dit is on nodig
+# - name: Testing connecties
+#   ping:
+
+
+- name: Gathering info about Machine name
+  command: hostname
+  register: hostname_output
+
+- name: Information about the system
+  debug:
+    msg: 
+      - "User name is: {{ ansible_user }} "
+      - "Machine name is: {{ hostname_output.stdout }} "
+      - "Ethernet interface: {{ ansible_default_ipv4.interface }} "
+      - "IP-address: {{ ansible_default_ipv4.address }} "
+      - "Netmask: {{ ansible_default_ipv4.netmask }} "
+      - "Default-gateway: {{ ansible_default_ipv4.gateway }} "
+      - "Mac-address: {{ ansible_default_ipv4.macaddress }} "
+      - "{{ansible_host}}"
+
+...

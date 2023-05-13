@@ -1,0 +1,173 @@
+---
+
+# Kon ook dit gebruiken
+# kubectl delete all --all -n {namespace}
+# maar het laat (pv, pvc, ingress, secrets) over!!!
+# Dus we kunnen het niet gebruiken.
+
+- name: SEE if the namespace actually exists
+  shell:
+    cmd: ./rancher kubectl get namespaces --token={{ bearer_token }} | awk '/{{ new_namespace }}/{print $1}'
+    chdir: "{{ path_to_rancher_file }}"
+  register: namespace_exists
+
+# - name: Debug namespace Test
+#   debug:
+#     msg: "test"
+#   when: namespace_exists.stdout_lines | length > 0
+
+
+- block:    
+    - name: GET the ingress name
+      shell:
+        cmd: ./rancher kubectl get ingress -n {{ new_namespace }} -o name --token={{ bearer_token }} | awk -F '/' '{print $2}'
+        chdir: "{{ path_to_rancher_file }}"
+      register: ingress_name
+
+    # - name: Debug names
+    #   debug:
+    #     msg: "{{ item }}" 
+    #   loop: "{{ ingress_name.stdout_lines }}"
+
+
+    - name: GET the service name
+      shell:
+        cmd: ./rancher kubectl get svc -n {{ new_namespace }} -o name --token={{ bearer_token }} | awk -F '/' '{print $2}'
+        chdir: "{{ path_to_rancher_file }}"
+      register: service_name
+
+    # - name: Debug names
+    #   debug:
+    #     msg: "{{ item }}" 
+    #   loop: "{{ service_name.stdout_lines }}"
+
+
+    - name: GET the deployment name
+      shell:
+        cmd: ./rancher kubectl get deployments -n {{ new_namespace }} -o name --token={{ bearer_token }} | awk -F '/' '{print $2}'
+        chdir: "{{ path_to_rancher_file }}"
+      register: deployment_name
+
+    # - name: Debug names
+    #   debug:
+    #     msg: "{{ item }}" 
+    #   loop: "{{ deployment_name.stdout_lines }}"
+
+
+    - name: GET the persistant volume claim name
+      shell:
+        cmd: ./rancher kubectl get pvc -n {{ new_namespace }} -o name --token={{ bearer_token }} | awk -F '/' '{print $2}'
+        chdir: "{{ path_to_rancher_file }}"
+      register: pvc_name
+
+    # - name: Debug names
+    #   debug:
+    #     msg: "{{ item }}" 
+    #   loop: "{{ pvc_name.stdout_lines }}"
+
+
+    - name: GET the persistant volume name
+      shell:
+        cmd: ./rancher kubectl get pv -o name --token={{ bearer_token }} | awk -F '/' '/{{ new_namespace }}/{print $2}'
+        chdir: "{{ path_to_rancher_file }}"
+      register: pv_name
+
+    - name: Debug names
+      debug:
+        msg: "{{ item }}" 
+      loop: "{{ pv_name.stdout_lines }}"
+      when: pv_name is defined and pv_name.stdout_lines | length > 0
+
+    # - name: Debug names test
+    #   debug:
+    #     msg: "test" 
+    #   when: pv_name is defined and pv_name.stdout_lines | length > 0
+
+    - name: GET the secrets name
+      shell:
+        cmd: ./rancher kubectl get secrets -n {{ new_namespace }} -o name --token={{ bearer_token }} | awk -F '/' '{print $2}'
+        chdir: "{{ path_to_rancher_file }}"
+      register: secrets_name
+
+    # - name: Debug names
+    #   debug:
+    #     msg: "{{ item }}" 
+    #   loop: "{{ secrets_name.stdout_lines }}"
+    #   when: secrets_name is defined and secrets_name.stdout_lines | length > 0
+
+
+
+    - name: DELETE the ingress
+      shell:
+        cmd: ./rancher kubectl delete ingress {{ item }} -n {{ new_namespace }} --token={{ bearer_token }}
+        chdir: "{{ path_to_rancher_file }}"
+      loop: "{{ ingress_name.stdout_lines }}"
+      when: ingress_name is defined and ingress_name.stdout_lines | length > 0
+
+    - name: DELETE the service
+      shell:
+        cmd: ./rancher kubectl delete service {{ item }} -n {{ new_namespace }} --token={{ bearer_token }}
+        chdir: "{{ path_to_rancher_file }}"
+      loop: "{{ service_name.stdout_lines }}"
+      when: service_name is defined and service_name.stdout_lines | length > 0
+
+    - name: DELETE the deployment
+      shell:
+        cmd: ./rancher kubectl delete deployment {{ item }} -n {{ new_namespace }} --token={{ bearer_token }}
+        chdir: "{{ path_to_rancher_file }}"
+      loop: "{{ deployment_name.stdout_lines }}"
+      when: deployment_name is defined and deployment_name.stdout_lines | length > 0
+
+    - name: DELETE the persistent volume claim
+      shell:
+        cmd: ./rancher kubectl delete pvc {{ item }} -n {{ new_namespace }} --token={{ bearer_token }}
+        chdir: "{{ path_to_rancher_file }}"
+      loop: "{{ pvc_name.stdout_lines }}"
+      when: pvc_name is defined and pvc_name.stdout_lines | length > 0
+
+    - name: DELETE the persistent volume
+      shell:
+        cmd: ./rancher kubectl delete pv {{ item }} --token={{ bearer_token }}
+        chdir: "{{ path_to_rancher_file }}"
+      loop: "{{ pv_name.stdout_lines }}"
+      when: pv_name is defined and pv_name.stdout_lines | length > 0
+    
+    - name: DELETE the secrets
+      shell:
+        cmd: ./rancher kubectl delete secret {{ item }} -n {{ new_namespace }} --token={{ bearer_token }}
+        chdir: "{{ path_to_rancher_file }}"
+      loop: "{{ secrets_name.stdout_lines }}"
+      when: secrets_name is defined and secrets_name.stdout_lines | length > 0
+
+    - name: DELETE the namespace
+      shell:
+        cmd: ./rancher kubectl delete namespace {{ new_namespace }} --token={{ bearer_token }}
+        chdir: "{{ path_to_rancher_file }}"
+    
+
+    
+
+    - name: DELETE the NFS files
+      file:
+        path: "{{ nfs_file_path }}{{ new_namespace }}"
+        state: absent
+        force: yes
+
+    # Als je een scenario wilt maken zoals bv. vm crashed of is verloren. 
+    # En je moet alles terug opzetten via de back-up dan moet je deze task in commentaar zetten.
+    - name: DELETE the project from the backup ansible-playbook
+      file:
+        path: "{{ backup_ansible_playbook }}/roles/{{ new_namespace }}"
+        state: absent
+        force: yes
+
+
+  when: namespace_exists.stdout_lines | length > 0
+
+
+
+
+
+
+
+...

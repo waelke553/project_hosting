@@ -1,0 +1,24 @@
+;
+; BIND data file for local loopback interface "{{ item }}"
+;
+$TTL    604800
+@       IN      SOA     ns1.{{ item }}. root.{{ item }}. (
+                              2         ; Serial
+                         604800         ; Refresh
+                          86400         ; Retry
+                        2419200         ; Expire
+                         604800 )       ; Negative Cache TTL
+;
+
+@       IN      NS      ns1.{{ item }}.
+@       IN      NS      ns2.{{ item }}.
+ns1     IN      A       {{ worker_node_1 }}
+ns2     IN      A       {{ worker_node_2 }}
+
+@       IN      A       {{ worker_node_1 }}
+@       IN      A       {{ worker_node_2 }}
+
+; Dit is een test! (Niet nodig)
+onzepc  IN      A       172.26.192.51
+www     IN      A       172.26.192.145
+        IN      A       172.26.192.240

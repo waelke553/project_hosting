@@ -1,0 +1,32 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ database_deployment_name }}
+spec:
+  replicas: {{ database_replicas }}
+  selector:
+    matchLabels:
+      app: db
+  template:
+    metadata:
+      labels:
+        app: db
+    spec:
+      containers:
+      - name: db
+        image: {{ database_image }}
+        env:
+        - name: {{ database_env_root_password_name }}
+          valueFrom:
+            secretKeyRef:
+              name: {{ database_secret_name }}
+              key: root_password
+        ports:
+        - containerPort: 3306
+        volumeMounts:
+        - name: db-persistent-storage
+          mountPath: {{ database_volumemounts_mountpath }}
+      volumes:
+      - name: db-persistent-storage
+        persistentVolumeClaim:
+          claimName: {{ database_persistent_volume_claim_name }}

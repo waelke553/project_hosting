@@ -1,0 +1,12 @@
+apiVersion: v1
+kind: Pod
+metadata:
+  name: apache-deployment-56b7bc64cc-jtchh
+  namespace: wael-nginx
+spec:
+  containers:
+  - name: apache-container
+    command:
+      - sh
+      - -c
+      - tree

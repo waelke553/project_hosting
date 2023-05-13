@@ -1,0 +1,24 @@
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: apache-ingress-cert
+  annotations:
+    kubernetes.io/ingress.class: nginx
+    nginx.ingress.kubernetes.io/ssl-redirect: "true"
+    cert-manager.io/cluster-issuer: cert-manager/apache-clusterissuer-cert
+spec:
+  tls:
+  - hosts:
+    - mijnapachetestsecure.com # Replace with your desired hostname or domain
+    secretName: apache-clusterissuer-cert-key
+  rules:
+    - host: mijnapachetestsecure.com # Replace with your desired hostname or domain
+      http:
+        paths:
+          - path: /
+            pathType: Prefix
+            backend:
+              service:
+                name: apache-service-cert
+                port:
+                  number: 8082

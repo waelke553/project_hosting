@@ -1,0 +1,38 @@
+---
+# - name: Install Tree on Apache Pod
+#   hosts: localhost
+#   gather_facts: no
+
+  # vars:
+  #   pod_name: "apache-deployment-56b7bc64cc-jtchh"
+  #   namespace: "wael-nginx"
+  #   container_name: "apache-container"
+
+  # tasks:
+- name: Get Pod IP
+  shell:
+    cmd: ./rancher kubectl get pod -n {{ namespace }} -o jsonpath='{range .items[*]}{.metadata.name} {.status.podIP}{"\n"}{end}' | grep {{ pod_name }} | awk '{print $2}'
+    chdir: "{{ path_to_rancher_file }}"
+  register: pod_ip
+
+- name: Get Pod Name
+  shell:
+    cmd: ./rancher kubectl get pod -n {{ namespace }} -o jsonpath='{range .items[*]}{.metadata.name} {.status.podIP}{"\n"}{end}' | grep {{ pod_name }} | awk '{print $1}'
+    chdir: "{{ path_to_rancher_file }}"
+  register: pod_name
+
+
+- name: Display Pod IP
+  debug:
+    var: pod_ip.stdout
+
+- name: Display Pod Full name
+  debug:
+    var: pod_name.stdout
+
+
+    # - name: Install Tree
+    #   become: true
+    #   command: ssh -o "StrictHostKeyChecking no" {{ pod_ip.stdout }} "apt-get update && apt-get install -y tree" 
+
+...

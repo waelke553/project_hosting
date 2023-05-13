@@ -1,0 +1,27 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: apache-deployment
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: website
+  template:
+    metadata:
+      labels:
+        app: website
+    spec:
+      containers:
+      - name: website
+        image: php:8.1-apache
+        command: ["/bin/bash", "-c", "apt-get clean && apt-get update && docker-php-ext-install mysqli && apache2ctl -DFOREGROUND"]
+        ports:
+        - containerPort: 80
+        volumeMounts:
+        - name: website-volume-storage
+          mountPath: /var/www/html
+      volumes:
+      - name: website-volume-storage
+        persistentVolumeClaim:
+          claimName: ansible-test-project-website-pvc

@@ -1,0 +1,14 @@
+apiVersion: cert-manager.io/v1
+kind: ClusterIssuer
+metadata:
+  name: apache-clusterissuer-cert
+spec:
+  acme:
+    server: https://acme-v02.api.letsencrypt.org/directory
+    email: r0781169@student.thomasmore.be
+    privateKeySecretRef:
+      name: apache-clusterissuer-cert-key
+    solvers:
+    - http01:
+        ingress:
+          class: nginx

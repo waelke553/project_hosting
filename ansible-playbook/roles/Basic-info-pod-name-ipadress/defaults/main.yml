@@ -1,0 +1,9 @@
+---
+
+pod_name: apache-deployment
+namespace: wael-nginx
+container_name: apache-container
+
+
+
+...

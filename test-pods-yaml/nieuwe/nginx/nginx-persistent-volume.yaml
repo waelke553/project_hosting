@@ -1,0 +1,15 @@
+# Activate 1
+
+apiVersion: v1
+kind: PersistentVolume
+metadata:
+  name: nfs-pv
+spec:
+  capacity:
+    storage: 1Gi
+  accessModes:
+    - ReadWriteMany
+  nfs:
+    path: /nfs/shareddir/website1
+    server: 172.26.192.80 #<ip_address_of_kubernetes_master>
+    # dit kan niet 127.0.0.1 zijn het moet het addres zijn van de cluster!!!
