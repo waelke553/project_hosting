@@ -1,9 +1,9 @@
 ---
 
-# - name: Create a new namespace
-#   shell:
-#     cmd: ./rancher kubectl create namespace {{ new_namespace }}
-#     chdir: "{{ path_to_rancher_file }}"
+- name: Create a new namespace
+  shell:
+    cmd: ./rancher kubectl create namespace {{ new_namespace }}
+    chdir: "{{ path_to_rancher_file }}"
 
 - name: Create a BASE folder in the NFS directory
   file:
@@ -11,356 +11,350 @@
     state: directory
     mode: '775'
 
-# - name: Create a directory called "files" for the yaml files
-#   file:
-#     path: "{{ current_playbook }}/files"
-#     state: directory
-#     mode: '755'
+- name: Create a directory called "files" for the yaml files
+  file:
+    path: "{{ current_playbook }}/files"
+    state: directory
+    mode: '755'
 
-# - name: Create a directory called "certificates" for the yaml files
-#   file:
-#     path: "{{ current_playbook }}/certificates"
-#     state: directory
-#     mode: '755'
-
-
-# # Start Database
-# - name: Create a folder for the database volume
-#   file:
-#     path: "{{ nfs_file_path }}{{ new_namespace }}/db"
-#     state: directory
-#     mode: '775'
-
-# - name: Encode the root password
-#   shell:
-#     cmd: echo -n "{{ database_root_password }}" | base64
-#   register: database_root_password_encrypted
+- name: Create a directory called "certificates" for the yaml files
+  file:
+    path: "{{ current_playbook }}/certificates"
+    state: directory
+    mode: '755'
 
 
-# - name: Jinja2 to yaml file - Database Deploy ALL
+# Start Database
+- name: Create a folder for the database volume
+  file:
+    path: "{{ nfs_file_path }}{{ new_namespace }}/db"
+    state: directory
+    mode: '775'
+
+- name: Encode the root password
+  shell:
+    cmd: echo -n "{{ database_root_password }}" | base64
+  register: database_root_password_encrypted
+
+
+- name: Jinja2 to yaml file - Database Deploy ALL
+  template:
+    src: "../templates/{{ item.src }}"
+    dest: "{{ current_playbook }}/files/{{ item.dest }}"
+  with_items: "{{ database_k8s_files }}"
+
+
+- name: Create "Database" Deploy ALL
+  shell:
+    cmd: ./rancher kubectl apply -f "{{ current_playbook }}/files/{{ item.dest }}" -n {{ new_namespace }} --token={{ bearer_token }}
+    chdir: "{{ path_to_rancher_file }}"
+  with_items: "{{ database_k8s_files }}"
+
+
+
+
+# - name: Jinja2 to yaml file - DB Persistent Volume
 #   template:
-#     src: "../templates/{{ item.src }}"
-#     dest: "{{ current_playbook }}/files/{{ item.dest }}"
-#   with_items: "{{ database_k8s_files }}"
+#     src: ../templates/db-persistent-volume.yaml.j2
+#     dest: "{{ backup_yaml }}/1db-persistent-volume.yaml"
 
-
-# - name: Create "Database" Deploy ALL
+# - name: Create a new "PERSISTENT-VOLUME" for the database
 #   shell:
-#     cmd: ./rancher kubectl apply -f "{{ current_playbook }}/files/{{ item.dest }}" -n {{ new_namespace }} --token={{ bearer_token }}
+#     cmd: ./rancher kubectl apply -f "{{ backup_yaml }}/1db-persistent-volume.yaml" -n {{ new_namespace }} --token={{ bearer_token }}
 #     chdir: "{{ path_to_rancher_file }}"
-#   with_items: "{{ database_k8s_files }}"
 
 
-
-
-# # - name: Jinja2 to yaml file - DB Persistent Volume
-# #   template:
-# #     src: ../templates/db-persistent-volume.yaml.j2
-# #     dest: "{{ backup_yaml }}/1db-persistent-volume.yaml"
-
-# # - name: Create a new "PERSISTENT-VOLUME" for the database
-# #   shell:
-# #     cmd: ./rancher kubectl apply -f "{{ backup_yaml }}/1db-persistent-volume.yaml" -n {{ new_namespace }} --token={{ bearer_token }}
-# #     chdir: "{{ path_to_rancher_file }}"
-
-
-# # - name: Jinja2 to yaml file - DB Persistent Volume Claim
-# #   template:
-# #     src: ../templates/db-persistent-volume-claim.yaml.j2
-# #     dest: "{{ backup_yaml }}/2db-persistent-volume-claim.yaml"
-
-# # - name: Create a new "PERSISTENT-VOLUME-CLAIM" for the database
-# #   shell:
-# #     cmd: ./rancher kubectl apply -f "{{ backup_yaml }}/2db-persistent-volume-claim.yaml" -n {{ new_namespace }} --token={{ bearer_token }}
-# #     chdir: "{{ path_to_rancher_file }}"
-
-
-# # - name: Jinja2 to yaml file - DB Deployment
-# #   template:
-# #     src: ../templates/db-deployment.yaml.j2
-# #     dest: "{{ backup_yaml }}/3db-deployment.yaml"
-
-# # - name: Create a new "DEPLOYMENT" for the database
-# #   shell:
-# #     cmd: ./rancher kubectl apply -f "{{ backup_yaml }}/3db-deployment.yaml" -n {{ new_namespace }} --token={{ bearer_token }}
-# #     chdir: "{{ path_to_rancher_file }}"
-
-
-# # - name: Jinja2 to yaml file - DB Service
-# #   template:
-# #     src: ../templates/db-service.yaml.j2
-# #     dest: "{{ backup_yaml }}/4db-service.yaml"
-
-# # - name: Create a new "SERVICE" for the database
-# #   shell:
-# #     cmd: ./rancher kubectl apply -f "{{ backup_yaml }}/4db-service.yaml" -n {{ new_namespace }} --token={{ bearer_token }}
-# #     chdir: "{{ path_to_rancher_file }}"
-# # End database
-
-
-# # Start phpmyadmin
-# - name: Generate private key
-#   openssl_privatekey:
-#     path: "{{ current_playbook }}/certificates/{{ phpmyadmin_certificate_name }}.key"
-#     size: 2048
-#     mode: 644
-
-# - name: Generate certificate signing request
-#   openssl_csr:
-#     path: "{{ current_playbook }}/certificates/{{ phpmyadmin_certificate_name }}.csr"
-#     privatekey_path: "{{ current_playbook }}/certificates/{{ phpmyadmin_certificate_name }}.key"
-#     common_name: "{{ phpmyadmin_ingress_url }}"
-
-# - name: Generate certificate
-#   openssl_certificate:
-#     path: "{{ current_playbook }}/certificates/{{ phpmyadmin_certificate_name }}.crt"
-#     csr_path: "{{ current_playbook }}/certificates/{{ phpmyadmin_certificate_name }}.csr"
-#     provider: selfsigned
-#     privatekey_path: "{{ current_playbook }}/certificates/{{ phpmyadmin_certificate_name }}.key"
-
-# - name: Sign certificate with root certificate
-#   openssl_certificate:
-#     path: "{{ current_playbook }}/certificates/{{ phpmyadmin_certificate_name }}.crt"
-#     csr_path: "{{ current_playbook }}/certificates/{{ phpmyadmin_certificate_name }}.csr"
-#     provider: ownca
-#     ownca_path: "{{ root_certificate_directory }}/root.crt"
-#     ownca_privatekey_path: "{{ root_certificate_directory }}/root.key"
-#     # ownca_privatekey_passphrase: mypassphrase
-
-# - name: Encrypt tls.crt and read it
-#   shell:
-#     cmd: cat "{{ current_playbook }}/certificates/{{ phpmyadmin_certificate_name }}.crt" | base64 | tr -d '\n'
-#   register: phpmyadmin_secret_crt
-
-# - name: Encrypt tls.key and read it
-#   shell:
-#     cmd: cat "{{ current_playbook }}/certificates/{{ phpmyadmin_certificate_name }}.key" | base64 | tr -d '\n'
-#   register: phpmyadmin_secret_key
-
-# - name: Jinja2 to yaml file - PHPmyAdmin Deploy ALL
+# - name: Jinja2 to yaml file - DB Persistent Volume Claim
 #   template:
-#     src: "../templates/{{ item.src }}"
-#     dest: "{{ current_playbook }}/files/{{ item.dest }}"
-#   with_items: "{{ phpmyadmin_k8s_files }}"
+#     src: ../templates/db-persistent-volume-claim.yaml.j2
+#     dest: "{{ backup_yaml }}/2db-persistent-volume-claim.yaml"
 
-
-# - name: Create "PHPmyAdmin" Deploy ALL
+# - name: Create a new "PERSISTENT-VOLUME-CLAIM" for the database
 #   shell:
-#     cmd: ./rancher kubectl apply -f "{{ current_playbook }}/files/{{ item.dest }}" -n {{ new_namespace }} --token={{ bearer_token }}
+#     cmd: ./rancher kubectl apply -f "{{ backup_yaml }}/2db-persistent-volume-claim.yaml" -n {{ new_namespace }} --token={{ bearer_token }}
 #     chdir: "{{ path_to_rancher_file }}"
-#   with_items: "{{ phpmyadmin_k8s_files }}"
-# # End phpmyadmin
 
 
-
-
-# # Start website
-# - name: Create a folder for the website volume
-#   file:
-#     path: "{{ nfs_file_path }}{{ new_namespace }}/website"
-#     state: directory
-#     mode: '775'
-
-
-
-
-# - name: Generate private key
-#   openssl_privatekey:
-#     path: "{{ current_playbook }}/certificates/{{ website_certificate_name }}.key"
-#     size: 2048
-#     mode: 644
-
-# - name: Generate certificate signing request
-#   openssl_csr:
-#     path: "{{ current_playbook }}/certificates/{{ website_certificate_name }}.csr"
-#     privatekey_path: "{{ current_playbook }}/certificates/{{ website_certificate_name }}.key"
-#     common_name: "{{ website_ingress_url }}"
-
-# - name: Generate certificate
-#   openssl_certificate:
-#     path: "{{ current_playbook }}/certificates/{{ website_certificate_name }}.crt"
-#     csr_path: "{{ current_playbook }}/certificates/{{ website_certificate_name }}.csr"
-#     provider: selfsigned
-#     privatekey_path: "{{ current_playbook }}/certificates/{{ website_certificate_name }}.key"
-
-# - name: Sign certificate with root certificate
-#   openssl_certificate:
-#     path: "{{ current_playbook }}/certificates/{{ website_certificate_name }}.crt"
-#     csr_path: "{{ current_playbook }}/certificates/{{ website_certificate_name }}.csr"
-#     provider: ownca
-#     ownca_path: "{{ root_certificate_directory }}/root.crt"
-#     ownca_privatekey_path: "{{ root_certificate_directory }}/root.key"
-#     # ownca_privatekey_passphrase: mypassphrase
-
-# - name: Encrypt tls.crt and read it
-#   shell:
-#     cmd: cat "{{ current_playbook }}/certificates/{{ website_certificate_name }}.crt" | base64 | tr -d '\n'
-#   register: website_secret_crt
-
-# - name: Encrypt tls.key and read it
-#   shell:
-#     cmd: cat "{{ current_playbook }}/certificates/{{ website_certificate_name }}.key" | base64 | tr -d '\n'
-#   register: website_secret_key
-
-# - name: Jinja2 to yaml file - Website Deploy ALL
+# - name: Jinja2 to yaml file - DB Deployment
 #   template:
-#     src: "../templates/{{ item.src }}"
-#     dest: "{{ current_playbook }}/files/{{ item.dest }}"
-#   with_items: "{{ website_k8s_files }}"
+#     src: ../templates/db-deployment.yaml.j2
+#     dest: "{{ backup_yaml }}/3db-deployment.yaml"
 
-
-# - name: Create "Website" Deploy ALL
+# - name: Create a new "DEPLOYMENT" for the database
 #   shell:
-#     cmd: ./rancher kubectl apply -f "{{ current_playbook }}/files/{{ item.dest }}" -n {{ new_namespace }} --token={{ bearer_token }}
+#     cmd: ./rancher kubectl apply -f "{{ backup_yaml }}/3db-deployment.yaml" -n {{ new_namespace }} --token={{ bearer_token }}
 #     chdir: "{{ path_to_rancher_file }}"
-#   with_items: "{{ website_k8s_files }}"
+
+
+# - name: Jinja2 to yaml file - DB Service
+#   template:
+#     src: ../templates/db-service.yaml.j2
+#     dest: "{{ backup_yaml }}/4db-service.yaml"
+
+# - name: Create a new "SERVICE" for the database
+#   shell:
+#     cmd: ./rancher kubectl apply -f "{{ backup_yaml }}/4db-service.yaml" -n {{ new_namespace }} --token={{ bearer_token }}
+#     chdir: "{{ path_to_rancher_file }}"
+# End database
+
+
+# Start phpmyadmin
+- name: Generate private key
+  openssl_privatekey:
+    path: "{{ current_playbook }}/certificates/{{ phpmyadmin_certificate_name }}.key"
+    size: 2048
+    mode: 644
+
+- name: Generate certificate signing request
+  openssl_csr:
+    path: "{{ current_playbook }}/certificates/{{ phpmyadmin_certificate_name }}.csr"
+    privatekey_path: "{{ current_playbook }}/certificates/{{ phpmyadmin_certificate_name }}.key"
+    common_name: "{{ phpmyadmin_ingress_url }}"
+
+- name: Generate certificate
+  openssl_certificate:
+    path: "{{ current_playbook }}/certificates/{{ phpmyadmin_certificate_name }}.crt"
+    csr_path: "{{ current_playbook }}/certificates/{{ phpmyadmin_certificate_name }}.csr"
+    provider: selfsigned
+    privatekey_path: "{{ current_playbook }}/certificates/{{ phpmyadmin_certificate_name }}.key"
+
+- name: Sign certificate with root certificate
+  openssl_certificate:
+    path: "{{ current_playbook }}/certificates/{{ phpmyadmin_certificate_name }}.crt"
+    csr_path: "{{ current_playbook }}/certificates/{{ phpmyadmin_certificate_name }}.csr"
+    provider: ownca
+    ownca_path: "{{ root_certificate_directory }}/root.crt"
+    ownca_privatekey_path: "{{ root_certificate_directory }}/root.key"
+    # ownca_privatekey_passphrase: mypassphrase
+
+- name: Encrypt tls.crt and read it
+  shell:
+    cmd: cat "{{ current_playbook }}/certificates/{{ phpmyadmin_certificate_name }}.crt" | base64 | tr -d '\n'
+  register: phpmyadmin_secret_crt
+
+- name: Encrypt tls.key and read it
+  shell:
+    cmd: cat "{{ current_playbook }}/certificates/{{ phpmyadmin_certificate_name }}.key" | base64 | tr -d '\n'
+  register: phpmyadmin_secret_key
+
+- name: Jinja2 to yaml file - PHPmyAdmin Deploy ALL
+  template:
+    src: "../templates/{{ item.src }}"
+    dest: "{{ current_playbook }}/files/{{ item.dest }}"
+  with_items: "{{ phpmyadmin_k8s_files }}"
+
+
+- name: Create "PHPmyAdmin" Deploy ALL
+  shell:
+    cmd: ./rancher kubectl apply -f "{{ current_playbook }}/files/{{ item.dest }}" -n {{ new_namespace }} --token={{ bearer_token }}
+    chdir: "{{ path_to_rancher_file }}"
+  with_items: "{{ phpmyadmin_k8s_files }}"
+# End phpmyadmin
+
+
+
+
+# Start website
+- name: Create a folder for the website volume
+  file:
+    path: "{{ nfs_file_path }}{{ new_namespace }}/website"
+    state: directory
+    mode: '775'
+
+
+
+
+- name: Generate private key
+  openssl_privatekey:
+    path: "{{ current_playbook }}/certificates/{{ website_certificate_name }}.key"
+    size: 2048
+    mode: 644
+
+- name: Generate certificate signing request
+  openssl_csr:
+    path: "{{ current_playbook }}/certificates/{{ website_certificate_name }}.csr"
+    privatekey_path: "{{ current_playbook }}/certificates/{{ website_certificate_name }}.key"
+    common_name: "{{ website_ingress_url }}"
+
+- name: Generate certificate
+  openssl_certificate:
+    path: "{{ current_playbook }}/certificates/{{ website_certificate_name }}.crt"
+    csr_path: "{{ current_playbook }}/certificates/{{ website_certificate_name }}.csr"
+    provider: selfsigned
+    privatekey_path: "{{ current_playbook }}/certificates/{{ website_certificate_name }}.key"
+
+- name: Sign certificate with root certificate
+  openssl_certificate:
+    path: "{{ current_playbook }}/certificates/{{ website_certificate_name }}.crt"
+    csr_path: "{{ current_playbook }}/certificates/{{ website_certificate_name }}.csr"
+    provider: ownca
+    ownca_path: "{{ root_certificate_directory }}/root.crt"
+    ownca_privatekey_path: "{{ root_certificate_directory }}/root.key"
+    # ownca_privatekey_passphrase: mypassphrase
+
+- name: Encrypt tls.crt and read it
+  shell:
+    cmd: cat "{{ current_playbook }}/certificates/{{ website_certificate_name }}.crt" | base64 | tr -d '\n'
+  register: website_secret_crt
+
+- name: Encrypt tls.key and read it
+  shell:
+    cmd: cat "{{ current_playbook }}/certificates/{{ website_certificate_name }}.key" | base64 | tr -d '\n'
+  register: website_secret_key
+
+- name: Jinja2 to yaml file - Website Deploy ALL
+  template:
+    src: "../templates/{{ item.src }}"
+    dest: "{{ current_playbook }}/files/{{ item.dest }}"
+  with_items: "{{ website_k8s_files }}"
+
+
+- name: Create "Website" Deploy ALL
+  shell:
+    cmd: ./rancher kubectl apply -f "{{ current_playbook }}/files/{{ item.dest }}" -n {{ new_namespace }} --token={{ bearer_token }}
+    chdir: "{{ path_to_rancher_file }}"
+  with_items: "{{ website_k8s_files }}"
 
 
 
 
 
 
-# # - name: Jinja2 to yaml file - Website Persistent Volume
-# #   template:
-# #     src: ../templates/website-persistent-volume.yaml.j2
-# #     dest: "{{ backup_yaml }}/5website-persistent-volume.yaml"
+# - name: Jinja2 to yaml file - Website Persistent Volume
+#   template:
+#     src: ../templates/website-persistent-volume.yaml.j2
+#     dest: "{{ backup_yaml }}/5website-persistent-volume.yaml"
 
-# # - name: Create a new "PERSISTENT-VOLUME" for the website
-# #   shell:
-# #     cmd: ./rancher kubectl apply -f "{{ backup_yaml }}/5website-persistent-volume.yaml" -n {{ new_namespace }} --token={{ bearer_token }}
-# #     chdir: "{{ path_to_rancher_file }}"
-
-
-# # - name: Jinja2 to yaml file - Website Persistent Volume Claim
-# #   template:
-# #     src: ../templates/website-persistent-volume-claim.yaml.j2
-# #     dest: "{{ backup_yaml }}/6website-persistent-volume-claim.yaml"
-
-# # - name: Create a new "PERSISTENT-VOLUME-CLAIM" for the website
-# #   shell:
-# #     cmd: ./rancher kubectl apply -f "{{ backup_yaml }}/6website-persistent-volume-claim.yaml" -n {{ new_namespace }} --token={{ bearer_token }}
-# #     chdir: "{{ path_to_rancher_file }}"
+# - name: Create a new "PERSISTENT-VOLUME" for the website
+#   shell:
+#     cmd: ./rancher kubectl apply -f "{{ backup_yaml }}/5website-persistent-volume.yaml" -n {{ new_namespace }} --token={{ bearer_token }}
+#     chdir: "{{ path_to_rancher_file }}"
 
 
-# # - name: Jinja2 to yaml file - Website Deployment
-# #   template:
-# #     src: ../templates/website-deployment.yaml.j2
-# #     dest: "{{ backup_yaml }}/7website-deployment.yaml"
+# - name: Jinja2 to yaml file - Website Persistent Volume Claim
+#   template:
+#     src: ../templates/website-persistent-volume-claim.yaml.j2
+#     dest: "{{ backup_yaml }}/6website-persistent-volume-claim.yaml"
 
-# # - name: Create a new "DEPLOYMENT" for the website
-# #   shell:
-# #     cmd: ./rancher kubectl apply -f "{{ backup_yaml }}/7website-deployment.yaml" -n {{ new_namespace }} --token={{ bearer_token }}
-# #     chdir: "{{ path_to_rancher_file }}"
-
-
-# # - name: Jinja2 to yaml file - Website Service
-# #   template:
-# #     src: ../templates/website-service.yaml.j2
-# #     dest: "{{ backup_yaml }}/8website-service.yaml"
-
-# # - name: Create a new "SERVICE" for the website
-# #   shell:
-# #     cmd: ./rancher kubectl apply -f "{{ backup_yaml }}/8website-service.yaml" -n {{ new_namespace }} --token={{ bearer_token }}
-# #     chdir: "{{ path_to_rancher_file }}"
+# - name: Create a new "PERSISTENT-VOLUME-CLAIM" for the website
+#   shell:
+#     cmd: ./rancher kubectl apply -f "{{ backup_yaml }}/6website-persistent-volume-claim.yaml" -n {{ new_namespace }} --token={{ bearer_token }}
+#     chdir: "{{ path_to_rancher_file }}"
 
 
-# # - name: Jinja2 to yaml file - Website Ingress
-# #   template:
-# #     src: ../templates/website-ingress.yaml.j2
-# #     dest: "{{ backup_yaml }}/9website-ingress.yaml"
+# - name: Jinja2 to yaml file - Website Deployment
+#   template:
+#     src: ../templates/website-deployment.yaml.j2
+#     dest: "{{ backup_yaml }}/7website-deployment.yaml"
 
-# # - name: Create a new "INGRESS" for the website
-# #   shell:
-# #     cmd: ./rancher kubectl apply -f "{{ backup_yaml }}/9website-ingress.yaml" -n {{ new_namespace }} --token={{ bearer_token }}
-# #     chdir: "{{ path_to_rancher_file }}"
-# # End website
-
+# - name: Create a new "DEPLOYMENT" for the website
+#   shell:
+#     cmd: ./rancher kubectl apply -f "{{ backup_yaml }}/7website-deployment.yaml" -n {{ new_namespace }} --token={{ bearer_token }}
+#     chdir: "{{ path_to_rancher_file }}"
 
 
+# - name: Jinja2 to yaml file - Website Service
+#   template:
+#     src: ../templates/website-service.yaml.j2
+#     dest: "{{ backup_yaml }}/8website-service.yaml"
 
-# # Start - Put default HTML page on the website
-# - name: Check if index.html exists
-#   stat:
-#     path: "{{ nfs_file_path ~ new_namespace }}/website/index.html"
-#   register: index_html_exists
+# - name: Create a new "SERVICE" for the website
+#   shell:
+#     cmd: ./rancher kubectl apply -f "{{ backup_yaml }}/8website-service.yaml" -n {{ new_namespace }} --token={{ bearer_token }}
+#     chdir: "{{ path_to_rancher_file }}"
 
-# - name: Get IP address of the machine
-#   shell: hostname -I | awk '{print $1}'
-#   register: machine_ip
-#   when: not index_html_exists.stat.exists
 
-# - name: Put default index.html page
-#   copy:
-#     content: |
-#       <html>
-#         <head>
-#           <title>Welcome to your Website</title>
-#         </head>
-#         <body>
-#           <h1>Welcome to your project: {{ new_namespace }}</h1>
-#           <p>You can get here with FTP</p>
-#           <p>Instructions go to ip-addres: {{ machine_ip.stdout }}</p>
+# - name: Jinja2 to yaml file - Website Ingress
+#   template:
+#     src: ../templates/website-ingress.yaml.j2
+#     dest: "{{ backup_yaml }}/9website-ingress.yaml"
 
-#         </body>
-#       </html>
-#     dest: "{{ nfs_file_path ~ new_namespace }}/website/index.html"
-#   when: not index_html_exists.stat.exists
-# # End - Put default HTML page on the website
+# - name: Create a new "INGRESS" for the website
+#   shell:
+#     cmd: ./rancher kubectl apply -f "{{ backup_yaml }}/9website-ingress.yaml" -n {{ new_namespace }} --token={{ bearer_token }}
+#     chdir: "{{ path_to_rancher_file }}"
+# End website
 
 
 
 
-# # Start - Backup the Yaml file
-# - name: Create a directory in the roles directory
-#   file:
-#     path: "{{ backup_ansible_playbook }}/roles/{{ new_namespace }}"
-#     state: directory
-#     mode: '755'
+# Start - Put default HTML page on the website
+- name: Check if index.html exists
+  stat:
+    path: "{{ nfs_file_path ~ new_namespace }}/website/index.html"
+  register: index_html_exists
 
-# - name: Create directories for new role
-#   file:
-#     path: "{{ backup_ansible_playbook }}/roles/{{ new_namespace }}/{{ item }}"
-#     state: directory
-#     mode: '755'
-#   with_items:
-#     - defaults
-#     - files
-#     - tasks
-#     - certificates
+- name: Get IP address of the machine
+  shell: hostname -I | awk '{print $1}'
+  register: machine_ip
+  when: not index_html_exists.stat.exists
 
-# - name: Copy files to backup directory
-#   copy:
-#     src: "{{ item.src }}"
-#     dest: "{{ backup_ansible_playbook }}/roles/{{ new_namespace }}/{{ item.dest }}"
-#   with_items:
-#     - { src: "../files/", dest: "files/" }
-#     - { src: "../certificates/", dest: "certificates/" }
+- name: Put default index.html page
+  copy:
+    content: |
+      <html>
+        <head>
+          <title>Welcome to your Website</title>
+        </head>
+        <body>
+          <h1>Welcome to your project: {{ new_namespace }}</h1>
+          <p>You can get here with FTP</p>
+          <p>Instructions go to ip-addres: {{ machine_ip.stdout }}</p>
 
-
-
-# - name: Create a main.yaml file for defaults
-#   copy:
-#     content: |
-#       ---
-
-#       new_namespace: {{ new_namespace }}
-
-#       ...
-#     dest: "{{ backup_ansible_playbook }}/roles/{{ new_namespace }}/defaults/main.yaml"
-
-# - name: Create a main.yaml file for tasks
-#   copy:
-#     src: ../templates/main.yml
-#     dest: "{{ backup_ansible_playbook }}/roles/{{ new_namespace }}/tasks/main.yaml"
+        </body>
+      </html>
+    dest: "{{ nfs_file_path ~ new_namespace }}/website/index.html"
+  when: not index_html_exists.stat.exists
+# End - Put default HTML page on the website
 
 
-# # End - Backup the Yaml file
 
 
-- name: Print variable for localhost
-  debug:
-    msg: "Variable value for localhost is: {{ phpmyadmin_ingress_url }}"
+# Start - Backup the Yaml file
+- name: Create a directory in the roles directory
+  file:
+    path: "{{ backup_ansible_playbook }}/roles/{{ new_namespace }}"
+    state: directory
+    mode: '755'
 
+- name: Create directories for new role
+  file:
+    path: "{{ backup_ansible_playbook }}/roles/{{ new_namespace }}/{{ item }}"
+    state: directory
+    mode: '755'
+  with_items:
+    - defaults
+    - files
+    - tasks
+    - certificates
+
+- name: Copy files to backup directory
+  copy:
+    src: "{{ item.src }}"
+    dest: "{{ backup_ansible_playbook }}/roles/{{ new_namespace }}/{{ item.dest }}"
+  with_items:
+    - { src: "../files/", dest: "files/" }
+    - { src: "../certificates/", dest: "certificates/" }
+
+
+
+- name: Create a main.yaml file for defaults
+  copy:
+    content: |
+      ---
+
+      new_namespace: {{ new_namespace }}
+
+      ...
+    dest: "{{ backup_ansible_playbook }}/roles/{{ new_namespace }}/defaults/main.yaml"
+
+- name: Create a main.yaml file for tasks
+  copy:
+    src: ../templates/main.yml
+    dest: "{{ backup_ansible_playbook }}/roles/{{ new_namespace }}/tasks/main.yaml"
+
+
+# End - Backup the Yaml file
 
 
 

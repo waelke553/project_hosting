@@ -1,0 +1,6 @@
+---
+
+new_username: ansible
+new_user_password: "mysecretpassword"
+
+...

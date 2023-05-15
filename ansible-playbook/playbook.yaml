@@ -1,21 +1,40 @@
 ---
 
-# - hosts: localhost
+# - hosts: localhost_setup
 #   gather_facts: no
 #   connection: local
 #   become: true
 #   roles:
-#     # - Basic-information-about-system
-#     # - Basic-info-pod-name-ipadress
+#     - Local-setup
 
-#     - Create-project-example
-#     # - Delete-all-resources-by-namespace
-#     # - Create-root-certificate
+# - hosts: [rancher_server_setup, dns_server_setup]
+#   gather_facts: no
+#   become: true
+#   roles:
+#     - Setup-ansible-user
 
-- hosts: dns_server
+
+
+
+
+
+- hosts: rancher_server
   gather_facts: no
   become: true
   roles:
-    - Create-dns-record
+    # - Basic-information-about-system
+    # - Basic-info-pod-name-ipadress
+
+    - Create-project-example
+    # - Delete-all-resources-by-namespace
+    # - Create-root-certificate
+
+
+
+# - hosts: dns_server
+#   gather_facts: no
+#   become: true
+#   roles:
+#     - Create-dns-record
 
 ...

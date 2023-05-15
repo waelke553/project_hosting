@@ -1,0 +1,37 @@
+---
+
+- name: Create user ansible
+  user:
+    name: "{{ new_username }}"
+    createhome: yes
+    shell: /bin/bash
+    password: "{{ new_user_password | password_hash('sha512', 'mysecretsalt') }}"
+
+- name: Create .ssh directory for ansible user
+  file:
+    path: "/home/{{ new_username }}/.ssh"
+    state: directory
+    owner: "{{ new_username }}"
+    group: "{{ new_username }}"
+    mode: '0700'
+
+- name: Generate SSH key for ansible user
+  command: ssh-keygen -t rsa -b 2048 -C "{{ new_username }}@masterserver" -f "/home/ansible/.ssh/id_rsa" -q -N ""
+
+- name: Set permissions on the public key file
+  file:
+    path: "/home/{{ new_username }}/.ssh/id_rsa.pub"
+    owner: "{{ new_username }}"
+    group: "{{ new_username }}"
+    mode: '0607'
+    state: file
+
+- name: Set permissions on the private key file
+  file:
+    path: "/home/{{ new_username }}/.ssh/id_rsa"
+    owner: "{{ new_username }}"
+    group: "{{ new_username }}"
+    mode: '0600'
+    state: file
+
+...

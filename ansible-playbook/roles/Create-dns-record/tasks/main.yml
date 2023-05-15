@@ -3,7 +3,7 @@
 - name: Copy file to remote host
   template:
     src: ../templates/record.yaml.j2
-    dest: "/home/wael/{{ item }}"
+    dest: "/etc/bind/{{ item }}"
     owner: root
     group: bind
     mode: 644
@@ -30,7 +30,7 @@
 
 # - name: Delete files on remote host
 #   file:
-#     path: "/home/wael/{{ item }}"
+#     path: "/etc/bind/{{ item }}"
 #     state: absent
 #   with_items: "{{ url_list }}"
 
