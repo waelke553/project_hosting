@@ -1,0 +1,50 @@
+---
+
+- name: Updaten van de repository
+  apt:
+    update_cache: 'yes'
+    cache_valid_time: 3600
+    upgrade: 'yes'
+
+
+- name: Install nfs-kernel-server
+  apt:
+    name: nfs-kernel-server
+    state: present
+
+
+- name: Create "{{ nfs_file_path }}" directory
+  file:
+    path: "{{ nfs_file_path }}"
+    owner: nobody
+    group: nogroup
+    state: directory
+    mode: '0777'
+
+# - name: Set ownership of "{{ nfs_file_path }}"
+#   file:
+#     path: "{{ nfs_file_path }}"
+#     owner: nobody
+#     group: nogroup
+
+# - name: Set permissions of /nfs/shareddir
+#   file:
+#     path: /nfs/shareddir
+#     mode: '0777'
+
+- name: Add entry to /etc/exports
+  lineinfile:
+    path: /etc/exports
+    line: "/nfs/shareddir *(rw,sync,no_subtree_check,no_root_squash)"
+    state: present
+
+
+- name: Restart NFS server
+  service:
+    name: nfs-kernel-server
+    state: restarted
+
+- name: Reload NFS exports
+  shell: exportfs -a
+
+...

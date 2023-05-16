@@ -23,7 +23,7 @@ database_service_name: mysql-service
 
 
 # Deze word gebruikt in de hosts file
-# phpmyadmin_secret_name: tls-secret-phpmyadmin
+phpmyadmin_secret_name: tls-secret-phpmyadmin
 
 phpmyadmin_deployment_name: phpmyadmin-deployment
 phpmyadmin_replicas: 1

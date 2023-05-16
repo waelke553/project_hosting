@@ -1,9 +1,15 @@
 ---
 
+# - name: test
+#   shell:
+#     cmd: kubectl get pods --all-namespaces --kubeconfig "{{ path_to_rancher_config_file }}"
+#     # chdir: "{{ path_to_rancher_file }}"
+
+
+
 - name: Create a new namespace
   shell:
-    cmd: ./rancher kubectl create namespace {{ new_namespace }}
-    chdir: "{{ path_to_rancher_file }}"
+    cmd: kubectl create namespace {{ new_namespace }} --kubeconfig "{{ path_to_rancher_config_file }}"
 
 - name: Create a BASE folder in the NFS directory
   file:
@@ -46,8 +52,7 @@
 
 - name: Create "Database" Deploy ALL
   shell:
-    cmd: ./rancher kubectl apply -f "{{ current_playbook }}/files/{{ item.dest }}" -n {{ new_namespace }} --token={{ bearer_token }}
-    chdir: "{{ path_to_rancher_file }}"
+    cmd: kubectl apply -f "{{ current_playbook }}/files/{{ item.dest }}" -n {{ new_namespace }} --token={{ bearer_token }} --kubeconfig "{{ path_to_rancher_config_file }}"
   with_items: "{{ database_k8s_files }}"
 
 
@@ -103,7 +108,7 @@
   openssl_privatekey:
     path: "{{ current_playbook }}/certificates/{{ phpmyadmin_certificate_name }}.key"
     size: 2048
-    mode: 644
+    mode: 0644
 
 - name: Generate certificate signing request
   openssl_csr:
@@ -146,8 +151,7 @@
 
 - name: Create "PHPmyAdmin" Deploy ALL
   shell:
-    cmd: ./rancher kubectl apply -f "{{ current_playbook }}/files/{{ item.dest }}" -n {{ new_namespace }} --token={{ bearer_token }}
-    chdir: "{{ path_to_rancher_file }}"
+    cmd: kubectl apply -f "{{ current_playbook }}/files/{{ item.dest }}" -n {{ new_namespace }} --token={{ bearer_token }} --kubeconfig "{{ path_to_rancher_config_file }}"
   with_items: "{{ phpmyadmin_k8s_files }}"
 # End phpmyadmin
 
@@ -168,7 +172,7 @@
   openssl_privatekey:
     path: "{{ current_playbook }}/certificates/{{ website_certificate_name }}.key"
     size: 2048
-    mode: 644
+    mode: 0644
 
 - name: Generate certificate signing request
   openssl_csr:
@@ -211,8 +215,7 @@
 
 - name: Create "Website" Deploy ALL
   shell:
-    cmd: ./rancher kubectl apply -f "{{ current_playbook }}/files/{{ item.dest }}" -n {{ new_namespace }} --token={{ bearer_token }}
-    chdir: "{{ path_to_rancher_file }}"
+    cmd: kubectl apply -f "{{ current_playbook }}/files/{{ item.dest }}" -n {{ new_namespace }} --token={{ bearer_token }} --kubeconfig "{{ path_to_rancher_config_file }}"
   with_items: "{{ website_k8s_files }}"
 
 

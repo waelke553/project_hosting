@@ -5,7 +5,18 @@
 #   connection: local
 #   become: true
 #   roles:
-#     - Local-setup
+#     # - Local-setup
+#     # - Setup-NFS-server
+#     # - Setup-kubectl
+#     - Setup-root-certificate
+
+
+# - hosts: workers_server
+#   gather_facts: no
+#   become: true
+#   roles:
+#     - Setup-NFS-slaves
+
 
 # - hosts: [rancher_server_setup, dns_server_setup]
 #   gather_facts: no
@@ -18,23 +29,25 @@
 
 
 
-- hosts: rancher_server
+# - hosts: localhost_setup
+#   gather_facts: no
+#   connection: local
+#   become: true
+#   roles:
+#     - Create-project-example
+#     # - Delete-all-resources-by-namespace
+#     # - Create-root-certificate
+
+
+
+
+
+- hosts: dns_server
   gather_facts: no
   become: true
   roles:
-    # - Basic-information-about-system
-    # - Basic-info-pod-name-ipadress
+    - Create-dns-record
+    # - Delete-dns-record
 
-    - Create-project-example
-    # - Delete-all-resources-by-namespace
-    # - Create-root-certificate
-
-
-
-# - hosts: dns_server
-#   gather_facts: no
-#   become: true
-#   roles:
-#     - Create-dns-record
 
 ...

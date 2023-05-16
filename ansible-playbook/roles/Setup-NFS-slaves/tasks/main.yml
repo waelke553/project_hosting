@@ -1,0 +1,35 @@
+---
+
+- name: Updaten van de repository
+  apt:
+    update_cache: 'yes'
+    cache_valid_time: 3600
+    upgrade: 'yes'
+
+
+- name: Install nfs-common package
+  apt:
+    name: nfs-common
+    state: present
+
+- name: Create directory for NFS share
+  file:
+    path: /nfs/shareddir
+    state: directory
+    mode: 0755
+
+- name: Mount NFS share
+  mount:
+    src: "{{ nfs_ip_address }}:/nfs/shareddir"
+    path: /nfs/shareddir
+    fstype: nfs
+    opts: rw,hard,intr
+    state: mounted
+
+- name: Add entry to /etc/fstab
+  lineinfile:
+    path: /etc/fstab
+    line: "{{ nfs_ip_address }}:/nfs/shareddir /nfs/shareddir nfs rw,hard,intr 0 0"
+    state: present
+
+...

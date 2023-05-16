@@ -1,0 +1,50 @@
+---
+
+- name: Updaten van de repository
+  apt:
+    update_cache: 'yes'
+    cache_valid_time: 3600
+    upgrade: 'yes'
+
+- name: Install dependencies
+  apt:
+    name:
+      - apt-transport-https
+      - ca-certificates
+      - curl
+      - gnupg-agent
+      - software-properties-common
+    state: present
+
+- name: Add Kubernetes apt-key
+  apt_key:
+    url: https://packages.cloud.google.com/apt/doc/apt-key.gpg
+    state: present
+
+- name: Add Kubernetes apt repository
+  apt_repository:
+    repo: deb https://apt.kubernetes.io/ kubernetes-xenial main
+    state: present
+
+- name: Update apt cache
+  apt:
+    update_cache: yes
+
+- name: Install kubectl
+  apt:
+    name: kubectl
+    state: present
+
+- name: Create .kube directory
+  file:
+    path: "/home/{{ ansible_user }}/.kube"
+    state: directory
+    owner: "{{ ansible_user }}"
+    group: "{{ ansible_user }}"
+    mode: 0700
+
+# Nu moet je nog alleen de config file van je cluster erin steken en dan kan je het testen
+# kubectl --kubeconfig /home/wael/.kube/config get pods --all-namespaces
+
+
+...

@@ -6,10 +6,18 @@
     dest: "/etc/bind/{{ item }}"
     owner: root
     group: bind
-    mode: 644
+    mode: 0644
     force: yes
   with_items: "{{ url_list }}"
 
+
+
+- name: Check if zone exists in named.conf.local
+  shell: grep -q "{{ item }}" /etc/bind/named.conf.local
+  changed_when: false
+  register: zone_check
+  with_items: "{{ url_list }}"
+  ignore_errors: true
 
 - name: Add zone to named.conf.local
   lineinfile:
@@ -23,40 +31,22 @@
         file "/etc/bind/{{ item }}";
       };
   with_items: "{{ url_list }}"
+  when: zone_check.results | rejectattr('rc', 'eq', 0) | selectattr('item', 'equalto', item) | list | length > 0
+  register: zone_added
 
 
+- name: Restarting BIND service
+  service:
+    name: bind9
+    daemon_reload: yes
+    state: restarted
+    enabled: True
+  when: zone_added.changed
+  
 
-
-
-# - name: Delete files on remote host
-#   file:
-#     path: "/etc/bind/{{ item }}"
-#     state: absent
-#   with_items: "{{ url_list }}"
-
-
-
-# - name: Remove zone from named.conf.local
-#   replace:
-#     path: /etc/bind/named.conf.local
-#     regexp: '^zone "example.com" {\s*notify no;\n\s*allow-update {none;};\n\s*type master;\n\s*file "/etc/bind/example.com";\n\s*};\n?'
-#     replace: ""
-
-
-
-
-
-
-
-
-
-
-
-# - name: Restarting BIND service
-#   service:
-#     name: named
-#     daemon_reload: yes
-#     state: restarted
-#     enabled: True
+- name: Flush DNS caches
+  shell:
+    cmd: resolvectl flush-caches
+  when: zone_added.changed
 
 ...

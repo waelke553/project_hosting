@@ -1,0 +1,43 @@
+---
+
+- name: Updaten van de repository
+  apt:
+    update_cache: 'yes'
+    cache_valid_time: 3600
+    upgrade: 'yes'
+
+- name: Install openssl
+  apt:
+    name: openssl
+    state: present
+
+
+- name: Create openssl directory
+  file:
+    path: "/home/{{ ansible_user }}/openssl"
+    state: directory
+    owner: "{{ ansible_user }}"
+    group: "{{ ansible_user }}"
+    mode: 0700
+
+
+- name: Generate private key
+  shell:
+    cmd: openssl genpkey -algorithm RSA -out "/home/{{ ansible_user }}/openssl/root.key"
+
+
+- name: Generate self-signed certificate
+  shell:
+    cmd: openssl req -new -x509 -key "/home/{{ ansible_user }}/openssl/root.key" -out "/home/{{ ansible_user }}/openssl/root.crt" -days 3650 -subj "/C=BE/ST=Antwerpen/L=Geel/O=Team CCS03/OU=De slimste studenten/CN=My Root CA - Team CCS03"
+
+
+### Certificaat in je browser steken. (firefox)
+# Add the root certificate to your browser: 
+# You can now add the root.crt file to your browser's certificate store. 
+# This process varies depending on the browser you are using. In Firefox, 
+# you can import the certificate by going to Preferences -> Privacy & Security 
+# -> Certificates -> View Certificates -> Authorities -> Import.
+
+# Je moet btw owner zijn van die file anders kan je hem er niet insteken!!!
+
+...
