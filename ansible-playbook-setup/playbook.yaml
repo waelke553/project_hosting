@@ -1,17 +1,17 @@
 ---
 
-# - hosts: [localhost_setup, rancher_server_setup, dns_server_setup]
-#   gather_facts: no
-#   become: true
-#   roles:
-#     - Setup-ansible-user
-
-
-- hosts: localhost_setup
+- hosts: [localhost_setup, rancher_server_setup, dns_server_setup]
   gather_facts: no
-  connection: local
   become: true
   roles:
-    - Setup-python
+    - Setup-ansible-user
+
+
+# - hosts: localhost_setup
+#   gather_facts: no
+#   connection: local
+#   become: true
+#   roles:
+#     - Setup-python
 
 ...

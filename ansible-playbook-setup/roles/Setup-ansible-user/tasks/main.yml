@@ -61,20 +61,19 @@
 
 
 
-# - name: Create a new group
-#   group:
-#     name: "{{ new_group_name }}"
-#     state: present
-#   when: inventory_hostname == "127.0.0.1"
+- name: Create a new group
+  group:
+    name: "{{ new_group_name }}"
+    state: present
+  when: inventory_hostname == "127.0.0.1"
 
-# - name: Add users to the group
-#   user:
-#     name: "{{ item }}"
-#     groups: "{{ new_group_name }}"
-#     append: yes
-#   loop: "{{ existing_users }}"
-#   when: inventory_hostname == "127.0.0.1"
-
+- name: Add users to the group
+  user:
+    name: "{{ item }}"
+    groups: "{{ new_group_name }}"
+    append: yes
+  loop: "{{ existing_users }}"
+  when: inventory_hostname == "127.0.0.1"
 
 
 # - name: Change group ownership of .ssh directory
@@ -101,6 +100,31 @@
     size: 2048
     # mode: "0644"
   when: inventory_hostname == "127.0.0.1"
+
+- name: Create ssh_keys folder
+  file:
+    path: /ssh_keys
+    state: directory
+    owner: root
+    group: "{{ new_group_name }}"
+    mode: "0650"
+  when: inventory_hostname == "127.0.0.1"
+
+
+
+- name: Copy file to ssh_keys folder
+  shell:
+    cmd: cp "/home/{{ new_username }}/.ssh/id_rsa" /ssh_keys/
+  when: inventory_hostname == "127.0.0.1"
+
+- name: Change permissions and group of the file
+  file:
+    path: /ssh_keys/id_rsa
+    owner: root
+    group: "{{ new_group_name }}"
+    mode: "0640"
+  when: inventory_hostname == "127.0.0.1"
+
 
 - name: Get SSH public key from the user "{{ new_username }}"
   shell: cat "{{ new_user_public_key }}"
