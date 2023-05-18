@@ -1,0 +1,11 @@
+---
+
+new_username: ansible
+new_user_public_key: "/home/{{ new_username }}/.ssh/id_rsa.pub"
+new_user_password: "ansible"
+
+new_group_name: ssh_key_access
+existing_users:
+  - "{{ new_username }}"
+  - wael
+...

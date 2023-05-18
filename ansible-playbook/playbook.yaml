@@ -1,5 +1,13 @@
 ---
 
+- hosts: localhost
+  gather_facts: no
+  become: true
+  roles:
+    - test
+
+
+
 # - hosts: localhost_setup
 #   gather_facts: no
 #   connection: local
@@ -42,12 +50,12 @@
 
 
 
-- hosts: dns_server
-  gather_facts: no
-  become: true
-  roles:
-    - Create-dns-record
-    # - Delete-dns-record
+# - hosts: dns_server
+#   gather_facts: no
+#   become: true
+#   roles:
+#     - Create-dns-record
+#     # - Delete-dns-record
 
 
 ...

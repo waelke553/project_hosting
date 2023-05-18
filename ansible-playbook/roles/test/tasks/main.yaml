@@ -1,0 +1,15 @@
+---
+
+- name: Write content to a test file
+  copy:
+    content: "Hello, this is a test file."
+    dest: "/home/ansible/testfile.txt"
+    # owner: ansible
+    # group: ansible
+    mode: '0644'
+
+- name: Display debug message
+  debug:
+    msg: "{{ varA }}     &    {{ varB }}          &       {{ path_to_rancher_file }}"
+
+...

@@ -1,7 +1,0 @@
----
-
-new_username: ansible
-new_user_public_key: "{{ lookup('file', '/home/{{ new_username }}/.ssh/id_rsa.pub') }}"
-new_user_password: "mysecretpassword"
-
-...

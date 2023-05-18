@@ -1,0 +1,124 @@
+---
+
+# - name: Display debug message
+#   debug:
+#     msg: "This is a debug message."
+#   when: inventory_hostname == "127.0.0.1"
+
+# - name: Display debug message
+#   debug:
+#     msg: "This is a debug message."
+#   when: inventory_hostname != "127.0.0.1"
+
+
+
+
+- name: Create new user
+  user:
+    name: "{{ new_username }}"
+    createhome: yes
+    shell: /bin/bash
+    password: "{{ new_user_password | password_hash('sha512', 'mysecretsalt') }}"
+
+- name: Add new user to sudo group
+  user:
+    name: "{{ new_username }}"
+    groups: sudo
+    append: yes
+
+- name: Create .ssh directory for new user
+  file:
+    path: "/home/{{ new_username }}/.ssh"
+    state: directory
+    mode: "0700"
+    owner: "{{ new_username }}"
+    group: "{{ new_username }}"
+
+
+
+- name: Enable public key authentication in sshd_config
+  lineinfile:
+    path: /etc/ssh/sshd_config
+    regexp: '^#PubkeyAuthentication yes'
+    line: 'PubkeyAuthentication yes'
+    backup: yes
+
+- name: Restart SSH service
+  service:
+    name: ssh
+    state: restarted
+  async: 1
+  poll: 0
+  when: inventory_hostname == "127.0.0.1"
+
+- name: Wait for SSH service to restart
+  wait_for:
+    host: localhost
+    port: 22
+    delay: 5
+    timeout: 60
+    state: started
+
+
+
+# - name: Create a new group
+#   group:
+#     name: "{{ new_group_name }}"
+#     state: present
+#   when: inventory_hostname == "127.0.0.1"
+
+# - name: Add users to the group
+#   user:
+#     name: "{{ item }}"
+#     groups: "{{ new_group_name }}"
+#     append: yes
+#   loop: "{{ existing_users }}"
+#   when: inventory_hostname == "127.0.0.1"
+
+
+
+# - name: Change group ownership of .ssh directory
+#   file:
+#     path: "/home/{{ new_username }}/.ssh"
+#     owner: "{{ new_username }}"
+#     group: "{{ new_group_name }}"
+#     recurse: yes
+#   when: inventory_hostname == "127.0.0.1"
+
+# - name: Change group ownership of ansible home folder
+#   file:
+#     path: "/home/{{ new_username }}"
+#     owner: "{{ new_username }}"
+#     group: "{{ new_group_name }}"
+#     recurse: yes
+#   when: inventory_hostname == "127.0.0.1"
+
+- name: Generate SSH key pair for new user
+  openssh_keypair:
+    path: "/home/{{ new_username }}/.ssh/id_rsa"
+    owner: "{{ new_username }}"
+    group: "{{ new_username }}"
+    size: 2048
+    # mode: "0644"
+  when: inventory_hostname == "127.0.0.1"
+
+- name: Get SSH public key from the user "{{ new_username }}"
+  shell: cat "{{ new_user_public_key }}"
+  register: ssh_key_result
+  delegate_to: 127.0.0.1
+
+- name: Add SSH public key for new user
+  authorized_key:
+    user: "{{ new_username }}"
+    state: present
+    key: "{{ ssh_key_result.stdout }}"
+
+
+- name: Add user to sudoers without password prompt
+  lineinfile:
+    dest: /etc/sudoers
+    line: "{{ new_username }} ALL=(ALL) NOPASSWD:ALL"
+    validate: 'visudo -cf %s'
+
+
+...
