@@ -4,9 +4,6 @@ local_absolute_path: /home/weo/backup
 
 backup_server_username: weo
 backup_server_ip_address: "192.168.0.30"
-# here you start from /home/weo
 backup_server_relative_path: backupfile
-
-local_absolute_path_restore: /home/weo/test
 
 ...

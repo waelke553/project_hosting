@@ -1,5 +1,5 @@
 [localhost_setup]
-127.0.0.1 ansible_user=wael
+127.0.0.1 ansible_user=weo
 
 [rancher_server_setup]
 172.26.103.1 ansible_user=wael

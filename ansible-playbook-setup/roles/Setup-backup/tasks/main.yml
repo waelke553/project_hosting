@@ -12,5 +12,34 @@
     name: duplicity
     state: present
 
+- name: Add SSH server fingerprint to known_hosts
+  become: false
+  command: ssh-keyscan -H {{ backup_server_ip_address }} >> ~/.ssh/known_hosts
+
+
+- name: Wait for search to complete
+  expect:
+    command: duplicity list-current-files sftp://{{ backup_server_username }}@{{ backup_server_ip_address }}/{{ backup_server_relative_path }}
+    responses:
+      "Are you sure you want to continue connecting (yes/no)?": "yes"
+  register: search_result
+  until: search_result.stdout_lines | select('search', 'Last full backup date') | list | count > 0
+  retries: 10
+  delay: 10
+  failed_when: search_result.stdout_lines is not defined or search_result.stdout_lines | select('search', 'Last full backup date') | list | count == 0
+  become: false
+
+# - name: Display variable value (dit werkt dan is die ER!)
+#   debug:
+#     var: search_result
+#   when: "'Last full backup date: none' not in search_result.stdout_lines"
+
+
+- name: Get backup
+  become: false
+  command: duplicity --no-encryption sftp://{{ backup_server_username }}@{{ backup_server_ip_address }}/{{ backup_server_relative_path }} {{ local_absolute_path_restore }}
+  when: "'Last full backup date: none' not in search_result.stdout_lines"
+
+
 
 ...

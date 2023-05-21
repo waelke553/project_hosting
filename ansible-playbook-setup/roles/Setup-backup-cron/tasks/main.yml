@@ -1,0 +1,43 @@
+---
+
+# - name: Updaten van de repository
+#   apt:
+#     update_cache: 'yes'
+#     cache_valid_time: 3600
+#     upgrade: 'yes'
+
+
+- name: Install duplicity
+  apt:
+    name: duplicity
+    state: present
+
+- name: Create folder for backup
+  file:
+    path: /backup_file
+    state: directory
+    owner: weo
+    group: weo
+    mode: 0755
+
+- name: Copy file
+  template:
+    src: ../templates/backup_file.yaml.j2
+    dest: "/backup_file/backup_file.sh"
+    owner: weo
+    group: weo
+    mode: 0644
+    force: yes
+
+
+- name: Add cron job for backups bash file
+  cron:
+    name: Run backup job at midnight
+    minute: '0'
+    hour: '0'
+    user: weo
+    job: /backup_file/backup_file.sh
+
+
+
+...
