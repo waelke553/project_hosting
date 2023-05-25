@@ -2,9 +2,8 @@
 127.0.0.1 ansible_user=wael
 
 [localhost:vars]
-path_to_rancher_file=/home/wael/rancher-v2.7.0/
-nfs_ip_address=172.26.192.80
 nfs_file_path=/nfs/shareddir/
-backup_yaml=/home/wael/ansible-playbook/roles/Create-project-example/files
+path_to_rancher_config_file=/home/ansible/.kube/config
+
 backup_ansible_playbook=/home/wael/ansible-playbook-backup
 bearer_token=token-7txdl:v9s89hg8qdzls7smrdtprt7f28gb2728dpxq465pz9dtt9m779dv9w

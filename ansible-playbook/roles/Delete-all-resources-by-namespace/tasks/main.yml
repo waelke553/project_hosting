@@ -133,19 +133,19 @@
 
     
 
-    - name: DELETE the NFS files
-      file:
-        path: "{{ nfs_file_path }}{{ new_namespace }}"
-        state: absent
-        force: yes
+    # - name: DELETE the NFS files
+    #   file:
+    #     path: "{{ nfs_file_path }}{{ new_namespace }}"
+    #     state: absent
+    #     force: yes
 
-    # Als je een scenario wilt maken zoals bv. vm crashed of is verloren. 
-    # En je moet alles terug opzetten via de back-up dan moet je deze task in commentaar zetten.
-    - name: DELETE the project from the backup ansible-playbook
-      file:
-        path: "{{ backup_ansible_playbook }}/roles/{{ new_namespace }}"
-        state: absent
-        force: yes
+    # # Als je een scenario wilt maken zoals bv. vm crashed of is verloren. 
+    # # En je moet alles terug opzetten via de back-up dan moet je deze task in commentaar zetten.
+    # - name: DELETE the project from the backup ansible-playbook
+    #   file:
+    #     path: "{{ backup_ansible_playbook }}/roles/{{ new_namespace }}"
+    #     state: absent
+    #     force: yes
 
 
   when: namespace_exists.stdout_lines | length > 0
