@@ -8,12 +8,16 @@
   file:
     path: "{{ nfs_file_path }}{{ username }}"
     state: directory
+    owner: "{{ username }}"
+    group: "{{ username }}"
 
 - name: Create a project folder in the NFS directory
   file:
     path: "{{ nfs_file_path }}{{ username }}/{{ new_namespace }}"
     state: directory
     mode: '775'
+    owner: "{{ username }}"
+    group: "{{ username }}"
 
 - name: Create a directory called "files" for the yaml files
   file:
@@ -34,6 +38,8 @@
     path: "{{ nfs_file_path }}{{ username }}/{{ new_namespace }}/db"
     state: directory
     mode: '775'
+    owner: "{{ username }}"
+    group: "{{ username }}"
 
 - name: Encode the root password
   shell:
@@ -117,12 +123,16 @@
     path: "{{ nfs_file_path }}{{ username }}/{{ new_namespace }}/website"
     state: directory
     mode: '775'
+    owner: "{{ username }}"
+    group: "{{ username }}"
 
 - name: Create a folder for the Website_virtualhost volume
   file:
     path: "{{ nfs_file_path }}{{ username }}/{{ new_namespace }}/website_virtualhost"
     state: directory
     mode: '775'
+    owner: "{{ username }}"
+    group: "{{ username }}"
 
 - name: Jinja2 to config file - Website_virtualhost file
   template:
@@ -203,6 +213,8 @@
   file:
     path: "{{ nfs_file_path }}{{ username }}/{{ new_namespace }}/website/public"
     state: directory
+    owner: "{{ username }}"
+    group: "{{ username }}"
   when: not website_files.stdout_lines | length > 0
 
 - name: Put default index.html page
@@ -220,6 +232,8 @@
         </body>
       </html>
     dest: "{{ nfs_file_path }}{{ username }}/{{ new_namespace }}/website/public/index.html"
+    owner: "{{ username }}"
+    group: "{{ username }}"
   when: not website_files.stdout_lines | length > 0
 # End - Put default HTML page on the website
 
