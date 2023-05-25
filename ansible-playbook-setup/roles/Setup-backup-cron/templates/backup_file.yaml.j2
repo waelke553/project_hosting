@@ -1,0 +1,12 @@
+#!/bin/bash
+
+# Source server details
+SOURCE_DIR={{ local_absolute_path }}
+
+# Destination server details
+DEST_USER={{ backup_server_username }}
+DEST_HOST={{ backup_server_ip_address }}
+DEST_DIR={{ backup_server_relative_path }}
+
+# Run Duplicity command on the source server to perform the backup to the destination server(backup)
+duplicity --no-encryption full $SOURCE_DIR sftp://$DEST_USER@$DEST_HOST/$DEST_DIR

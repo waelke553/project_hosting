@@ -6,13 +6,13 @@
 #   roles:
 #     - Setup-ansible-user
 
-- hosts: dns_server_setup
+- hosts: localhost_setup
   gather_facts: no
+  connection: local
   become: true
   roles:
+    - Setup-backup-cron
     - Setup-backup
-
-
 
 
 
