@@ -5,13 +5,13 @@
   connection: local
   become: true
   roles:
-    - Create-project-example
+    - Delete-all-resources-by-namespace
 
 - hosts: dns_server
   gather_facts: no
   become: true
   roles:
-    - Create-dns-record
+    - Delete-dns-record
 
 
 ...

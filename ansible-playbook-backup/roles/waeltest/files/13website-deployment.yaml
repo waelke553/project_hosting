@@ -1,0 +1,40 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: apache-deployment
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: website
+  template:
+    metadata:
+      labels:
+        app: website
+    spec:
+      containers:
+      - name: website
+        image: r0781669/laravel
+        command: ["/bin/bash"]
+        args:
+          - "-c"
+          - |
+            cd /var/www/html/
+            composer install --no-scripts --no-autoloader
+            composer dump-autoload --optimize
+            chmod 755 public/
+            apache2-foreground
+        ports:
+        - containerPort: 80
+        volumeMounts:
+        - name: website-volume-storage
+          mountPath: /var/www/html
+        - name: website-volume-virtualhost
+          mountPath: /etc/apache2/sites-enabled/
+      volumes:
+      - name: website-volume-storage
+        persistentVolumeClaim:
+          claimName: waeltest-website-pvc
+      - name: website-volume-virtualhost
+        persistentVolumeClaim:
+          claimName: waeltest-website-pvc-virtualhost

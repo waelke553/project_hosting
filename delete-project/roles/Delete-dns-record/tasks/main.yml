@@ -1,0 +1,28 @@
+---
+
+- name: Delete files on remote host
+  file:
+    path: "/etc/bind/{{ item }}"
+    state: absent
+  with_items: "{{ url_list }}"
+
+- name: Remove zone from named.conf.local
+  replace:
+    path: /etc/bind/named.conf.local
+    regexp: '^zone "{{ item }}" {\s*notify no;\n\s*allow-update {none;};\n\s*type master;\n\s*file "/etc/bind/{{ item }}";\n\s*};\n?'
+    replace: ""
+  with_items: "{{ url_list }}"
+
+
+- name: Restarting BIND service
+  service:
+    name: bind9
+    daemon_reload: yes
+    state: restarted
+    enabled: True
+
+- name: Flush DNS caches
+  shell:
+    cmd: resolvectl flush-caches
+
+...

@@ -1,0 +1,92 @@
+---
+
+- name: SEE if the namespace actually exists
+  shell:
+    cmd: kubectl get namespaces --token={{ bearer_token }}  --kubeconfig "{{ path_to_rancher_config_file }}" | awk '/{{ new_namespace }}/{print $1}'
+  register: namespace_exists
+
+# - name: Debug namespace Test
+#   debug:
+#     msg: "test"
+#   when: namespace_exists.stdout_lines | length == 0
+
+
+- block:
+    - name: Scan "files" directory for YAML files
+      find:
+        paths: "{{ backup_ansible_playbook }}/roles/{{ new_namespace }}/files/"
+        patterns: "*.yaml"
+      register: yaml_files
+
+    # - name: Debug YAML files
+    #   debug:
+    #     msg: "{{ item.path }}" 
+    #   loop: "{{ yaml_files.files | sort(attribute='path') }}"
+
+    - name: Create a new namespace
+      shell:
+        cmd: kubectl create namespace {{ new_namespace }}  --kubeconfig "{{ path_to_rancher_config_file }}"
+
+    - name: Create a Username folder in the NFS directory
+      file:
+        path: "{{ nfs_file_path }}{{ username }}"
+        state: directory
+
+    - name: Create a BASE folder in the NFS directory
+      file:
+        path: "{{ nfs_file_path }}{{ username }}/{{ new_namespace }}"
+        state: directory
+        mode: '775'
+    
+    - name: Create a folder for the database volume
+      file:
+        path: "{{ nfs_file_path }}{{ username }}/{{ new_namespace }}/{{ item }}"
+        state: directory
+        mode: '775'
+      with_items:
+        - db
+        - website
+        - website_virtualhost
+
+    - name: Executing every Yaml file with kubctl apply
+      shell:
+        cmd: kubectl apply -f "{{ item.path }}" -n {{ new_namespace }} --token={{ bearer_token }}  --kubeconfig "{{ path_to_rancher_config_file }}"
+      loop: "{{ yaml_files.files | sort(attribute='path') }}"
+
+    # Start - Put default HTML page on the website
+    - name: Check if anything exists in website directory
+      command: ls -A "{{ nfs_file_path }}{{ username }}/{{ new_namespace }}/website"
+      register: website_files
+
+
+    - name: Get IP address of the machine
+      shell: hostname -I | awk '{print $1}'
+      register: machine_ip
+      when: not website_files.stdout_lines | length > 0
+
+    - name: Create a public folder in the website directory
+      file:
+        path: "{{ nfs_file_path }}{{ username }}/{{ new_namespace }}/website/public"
+        state: directory
+      when: not website_files.stdout_lines | length > 0
+
+    - name: Put default index.html page
+      copy:
+        content: |
+          <html>
+            <head>
+              <title>Welcome to your Website</title>
+            </head>
+            <body>
+              <h1>Welcome to your project: {{ new_namespace }}</h1>
+              <p>You can get here with FTP</p>
+              <p>Instructions go to ip-addres: {{ machine_ip.stdout }}</p>
+
+            </body>
+          </html>
+        dest: "{{ nfs_file_path }}{{ username }}/{{ new_namespace }}/website/public/index.html"
+      when: not website_files.stdout_lines | length > 0
+    # End - Put default HTML page on the website
+  when: namespace_exists.stdout_lines | length == 0
+  
+...

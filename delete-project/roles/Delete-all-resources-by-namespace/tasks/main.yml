@@ -1,19 +1,9 @@
 ---
 
-# Kon ook dit gebruiken
-# kubectl delete all --all -n {namespace}
-# maar het laat (pv, pvc, ingress, secrets) over!!!
-# Dus we kunnen het niet gebruiken.
-
 - name: SEE if the namespace actually exists
   shell:
     cmd: kubectl get namespaces --token={{ bearer_token }} --kubeconfig "{{ path_to_rancher_config_file }}" | awk '/{{ new_namespace }}/{print $1}'
   register: namespace_exists
-
-# - name: Debug namespace Test
-#   debug:
-#     msg: "test"
-#   when: namespace_exists.stdout_lines | length > 0
 
 
 - block:    
@@ -135,16 +125,10 @@
 
     - name: DELETE the NFS files
       file:
-        path: "{{ nfs_file_path }}{{ new_namespace }}"
+        path: "{{ nfs_file_path }}{{ username }}/{{ new_namespace }}"
         state: absent
         force: yes
-      when: delete_volume_mapping == true
-    
-    # - name: Debug message als het mag volume mapping
-    #   debug:
-    #     msg: "This is a debug message"
-    #   when: delete_volume_mapping == true
-
+      when: delete_volume_mapping == "ja"
 
     # Als je een scenario wilt maken zoals bv. vm crashed of is verloren. 
     # En je moet alles terug opzetten via de back-up dan moet je deze task in commentaar zetten.
@@ -153,10 +137,6 @@
         path: "{{ backup_ansible_playbook }}/roles/{{ new_namespace }}"
         state: absent
         force: yes
-
-
-
-  
 
 
   when: namespace_exists.stdout_lines | length > 0
