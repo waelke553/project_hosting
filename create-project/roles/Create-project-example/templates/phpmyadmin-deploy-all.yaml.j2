@@ -1,0 +1,83 @@
+apiVersion: v1
+kind: Secret
+metadata:
+  name: {{ phpmyadmin_secret_name }}
+type: kubernetes.io/tls
+data:
+  tls.crt: {{ phpmyadmin_secret_crt.stdout }}
+  tls.key: {{ phpmyadmin_secret_key.stdout }}
+
+---
+
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ phpmyadmin_deployment_name }}
+  labels:
+    app: phpmyadmin
+spec:
+  replicas: {{ phpmyadmin_replicas }}
+  selector:
+    matchLabels:
+      app: phpmyadmin
+  template:
+    metadata:
+      labels:
+        app: phpmyadmin
+    spec:
+      containers:
+        - name: phpmyadmin
+          image: {{ phpmyadmin_image }}
+          ports:
+            - containerPort: 80
+          env:
+            - name: PMA_HOST
+              value: {{ database_service_name }}
+            - name: PMA_PORT
+              value: "3306"
+
+---
+
+apiVersion: v1
+kind: Service
+metadata:
+  name: {{ phpmyadmin_service_name }}
+spec:
+  selector:
+    app: phpmyadmin
+  ports:
+  - protocol: TCP
+    port: {{ phpmyadmin_outside_port }}
+    targetPort: 80
+  dependsOn:
+    - name: {{ phpmyadmin_deployment_name }}
+      condition: "Available"
+---
+
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: {{ phpmyadmin_ingress_name }}
+  annotations:
+    nginx.ingress.kubernetes.io/ssl-redirect: "true"
+spec:
+  tls:
+  - secretName: {{ phpmyadmin_secret_name }}
+  rules:
+  - host: {{ phpmyadmin_ingress_url }}
+    http:
+      paths:
+      - path: /
+        pathType: Prefix
+        backend:
+          service:
+            name: {{ phpmyadmin_service_name }}
+            port:
+              number: {{ phpmyadmin_outside_port }}
+  dependsOn:
+    - name: {{ phpmyadmin_deployment_name }}
+      condition: "Available"
+    - name: {{ phpmyadmin_service_name }}
+      condition: "Available"
+    - name: {{ phpmyadmin_secret_name }}
+      condition: "Available"

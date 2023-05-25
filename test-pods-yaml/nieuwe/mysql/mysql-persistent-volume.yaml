@@ -8,5 +8,5 @@ spec:
   accessModes:
     - ReadWriteOnce
   nfs:
-    server: 172.26.192.80
+    server: 172.26.103.3
     path: /nfs/shareddir/mysql1

@@ -1,2 +1,8 @@
 varA: "dit is een test varA"
 varB: "jaja"
+
+
+# Dit moet ook naar de backup gaan
+new_namespace: ansible-test-project
+
+database_root_password: root

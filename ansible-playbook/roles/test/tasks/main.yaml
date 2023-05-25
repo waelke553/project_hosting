@@ -1,15 +1,24 @@
 ---
 
-- name: Write content to a test file
-  copy:
-    content: "Hello, this is a test file."
-    dest: "/home/ansible/testfile.txt"
-    # owner: ansible
-    # group: ansible
-    mode: '0644'
+# - name: Write content to a test file
+#   copy:
+#     content: "Hello, this is a test file."
+#     dest: "/home/ansible/testfile.txt"
+#     # owner: ansible
+#     # group: ansible
+#     mode: '0644'
 
 - name: Display debug message
   debug:
-    msg: "{{ varA }}     &    {{ varB }}          &       {{ path_to_rancher_file }}"
+    msg: 
+      - "{{ varA }}     &    {{ varB }}      "
+      # - "{{ new_namespace }}             è             {{ database_root_password }}"
+      - "{{ phpmyadmin_ingress_url_hosts }}                éé       {{ website_ingress_url_hosts }}"
 
+
+- name: Create a BASE folder in the NFS directory
+  file:
+    path: "/nfs/shareddir/test_file"
+    state: directory
+    mode: '775'
 ...

@@ -8,7 +8,7 @@ spec:
   tls:
   - secretName: tls-secret-phpmyadmin
   rules:
-  - host: mijnphpmyadmin.com # Replace with your desired hostname or domain
+  - host: laravel-phpmyadmin.com # Replace with your desired hostname or domain
     http:
       paths:
       - path: /

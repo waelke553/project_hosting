@@ -12,3 +12,18 @@ spec:
       storage: 1Gi
   storageClassName: ""
   volumeName: apache-pv
+
+---
+
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: apache-pvc-conf
+spec:
+  accessModes:
+    - ReadWriteMany
+  resources:
+    requests:
+      storage: 1Gi
+  storageClassName: ""
+  volumeName: apache-pv-conf

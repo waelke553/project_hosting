@@ -10,6 +10,21 @@ spec:
   accessModes:
     - ReadWriteMany
   nfs:
-    path: /nfs/shareddir/website1_2
-    server: 172.26.192.80 #<ip_address_of_kubernetes_master>
+    path: /nfs/shareddir/laravel
+    server: 172.26.103.3 #<ip_address_of_kubernetes_master>
     # dit kan niet 127.0.0.1 zijn het moet het addres zijn van de cluster!!!
+
+---
+
+apiVersion: v1
+kind: PersistentVolume
+metadata:
+  name: apache-pv-conf
+spec:
+  capacity:
+    storage: 1Gi
+  accessModes:
+    - ReadWriteMany
+  nfs:
+    path: /nfs/shareddir/laravel-config
+    server: 172.26.103.3

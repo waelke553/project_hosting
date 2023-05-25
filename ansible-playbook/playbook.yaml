@@ -1,10 +1,10 @@
 ---
 
-- hosts: localhost
-  gather_facts: no
-  become: true
-  roles:
-    - test
+# - hosts: localhost_setup
+#   gather_facts: no
+#   become: true
+#   roles:
+#     - test
 
 
 
@@ -37,14 +37,14 @@
 
 
 
-# - hosts: localhost_setup
-#   gather_facts: no
-#   connection: local
-#   become: true
-#   roles:
-#     - Create-project-example
-#     # - Delete-all-resources-by-namespace
-#     # - Create-root-certificate
+- hosts: localhost_setup
+  gather_facts: no
+  connection: local
+  become: true
+  roles:
+    # - Create-project-example
+    - Delete-all-resources-by-namespace
+    # - Create-root-certificate
 
 
 

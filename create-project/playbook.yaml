@@ -1,0 +1,11 @@
+---
+
+- hosts: localhost_setup
+  gather_facts: no
+  connection: local
+  become: true
+  roles:
+    - Create-project-example
+
+
+...

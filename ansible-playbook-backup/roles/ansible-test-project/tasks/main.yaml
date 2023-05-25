@@ -28,21 +28,28 @@
       shell:
         cmd: ./rancher kubectl create namespace {{ new_namespace }}
         chdir: "{{ path_to_rancher_file }}"
+        
+    - name: Create a Username folder in the NFS directory
+      file:
+        path: "{{ nfs_file_path }}{{ username }}"
+        state: directory
+        # mode: '775'
 
     - name: Create a BASE folder in the NFS directory
       file:
-        path: "{{ nfs_file_path }}{{ new_namespace }}"
+        path: "{{ nfs_file_path }}{{ username }}/{{ new_namespace }}"
         state: directory
         mode: '775'
     
     - name: Create a folder for the database volume
       file:
-        path: "{{ nfs_file_path }}{{ new_namespace }}/{{ item }}"
+        path: "{{ nfs_file_path }}{{ username }}/{{ new_namespace }}/{{ item }}"
         state: directory
         mode: '775'
       with_items:
         - db
         - website
+        - website_virtualhost
 
     - name: Executing every Yaml file with kubctl apply
       shell:
@@ -51,15 +58,21 @@
       loop: "{{ yaml_files.files | sort(attribute='path') }}"
 
     # Start - Put default HTML page on the website
-    - name: Check if index.html exists
-      stat:
-        path: "{{ nfs_file_path ~ new_namespace }}/website/index.html"
-      register: index_html_exists
+    - name: Check if anything exists in website directory
+      command: ls -A "{{ nfs_file_path }}{{ username }}/{{ new_namespace }}/website"
+      register: website_files
+
 
     - name: Get IP address of the machine
       shell: hostname -I | awk '{print $1}'
       register: machine_ip
-      when: not index_html_exists.stat.exists
+      when: not website_files.stdout_lines | length > 0
+
+    - name: Create a public folder in the website directory
+      file:
+        path: "{{ nfs_file_path }}{{ username }}/{{ new_namespace }}/website/public"
+        state: directory
+      when: not website_files.stdout_lines | length > 0
 
     - name: Put default index.html page
       copy:
@@ -75,8 +88,8 @@
 
             </body>
           </html>
-        dest: "{{ nfs_file_path ~ new_namespace }}/website/index.html"
-      when: not index_html_exists.stat.exists
+        dest: "{{ nfs_file_path }}{{ username }}/{{ new_namespace }}/website/public/index.html"
+      when: not website_files.stdout_lines | length > 0
     # End - Put default HTML page on the website
   when: namespace_exists.stdout_lines | length == 0
   

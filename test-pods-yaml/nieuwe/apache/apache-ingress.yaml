@@ -4,7 +4,7 @@ metadata:
   name: apache-ingress
 spec:
   rules:
-    - host: mijnapachetest.com # Replace with your desired hostname or domain
+    - host: laravel-website.com # Replace with your desired hostname or domain
       http:
         paths:
           - path: /

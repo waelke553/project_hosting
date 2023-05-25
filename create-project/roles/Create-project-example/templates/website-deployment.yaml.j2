@@ -1,0 +1,40 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ website_pod_name }}
+spec:
+  replicas: {{ website_replicas }}
+  selector:
+    matchLabels:
+      app: website
+  template:
+    metadata:
+      labels:
+        app: website
+    spec:
+      containers:
+      - name: website
+        image: {{ website_image }}
+        command: ["/bin/bash"]
+        args:
+          - "-c"
+          - |
+            cd /var/www/html/
+            composer install --no-scripts --no-autoloader
+            composer dump-autoload --optimize
+            chmod 755 public/
+            apache2-foreground
+        ports:
+        - containerPort: 80
+        volumeMounts:
+        - name: website-volume-storage
+          mountPath: {{ website_volumemounts_mountpath }}
+        - name: website-volume-virtualhost
+          mountPath: {{ website_config_volumemounts_mountpath }}
+      volumes:
+      - name: website-volume-storage
+        persistentVolumeClaim:
+          claimName: {{ website_persistent_volume_claim_name }}
+      - name: website-volume-virtualhost
+        persistentVolumeClaim:
+          claimName: {{ website_persistent_volume_claim_name }}-virtualhost
